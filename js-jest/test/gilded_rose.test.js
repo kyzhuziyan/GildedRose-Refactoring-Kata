@@ -1,41 +1,47 @@
 const { Shop, Item } = require("../src/gilded_rose");
 
-const name_lst = [
-  "foo",
-  "Aged Brie",
-  "Backstage passes to a TAFKAL80ETC concert",
-  "Sulfuras, Hand of Ragnaros",
-];
-const sell_in_lst = [-1, 0, 1, 5, 10, 15];
-const quality_lst = [-1, 0, 1, 5, 10, 15, 80, 49];
+const getExamples = () => {
+  const name_lst = [
+    "foo",
+    "Aged Brie",
+    "Backstage passes to a TAFKAL80ETC concert",
+    "Conjured",
+  ];
+  const sell_in_lst = [-1, 0, 1, 5, 10, 15, 2];
+  const quality_lst = [0, 1, 5, 10, 15, 49, 50];
 
-const old_examples = name_lst
-  .map((name) =>
-    sell_in_lst.map((sell_in) =>
-      quality_lst.map((quality) => {
-        const itemArgs = new Item(name, sell_in, quality);
-        const gildedRose = new Shop([itemArgs]);
-        const items = gildedRose.updateQuality();
-        return { itemArgs, items };
-      })
+  const examples = name_lst
+    .map((name) =>
+      sell_in_lst.map((sell_in) =>
+        quality_lst.map((quality) => {
+          const itemArgs = new Item(name, sell_in, quality);
+          return itemArgs;
+        })
+      )
     )
-  )
-  .flat(2);
+    .flat(2);
+  return [
+    ...examples,
+    new Item("Sulfuras, Hand of Ragnaros", 0, 80),
+    new Item("Sulfuras, Hand of Ragnaros", -1, 80),
+    new Item("Sulfuras, Hand of Ragnaros", 10, 80),
+    undefined,
+  ];
+};
 
-describe("Gilded Rose", function () {
-  old_examples.forEach((example) => {
-    it("should foo", function () {
-      const gildedRose = new Shop([example.itemArgs]);
+describe("snapshot test", function () {
+  const examples = getExamples();
+  const output = [];
+  examples.forEach((example) => {
+    it("items", function () {
+      const gildedRose = new Shop(example ? [example] : undefined);
       const items = gildedRose.updateQuality();
-      expect(items[0].name).toBe(example.items[0].name);
-      expect(items[0].sellIn).toBe(example.items[0].sellIn);
-      expect(items[0].quality).toBe(example.items[0].quality);
+      output.push([...items]);
     });
   });
+  expect(output).toMatchSnapshot();
 
-  it("items undefined", function () {
-    const gildedRose = new Shop(undefined);
-    const items = gildedRose.updateQuality();
-    expect(items.length).toBe(0);
+  it("snapshot test", () => {
+    expect(output).toMatchSnapshot();
   });
 });
